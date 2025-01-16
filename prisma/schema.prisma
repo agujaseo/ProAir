@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliveryNotesAsCommercial DeliveryNote[] @relation("CommercialDeliveryNotes")
+  deliveryNotesAsTechnician DeliveryNote[] @relation("TechnicianDeliveryNotes")
+}
+
+model Client {
+  id             String   @id @default(uuid())
+  name           String
+  commercialName String
+  address        String
+  latitude       Float?
+  longitude      Float?
+  postalCode     String
+  city           String
+  phone          String
+  email          String
+  status         String
+  vatNumber      String
+  paymentMethod  String
+  authorizedBy   String
+  schedule       String
+  closedDays     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  deliveryNotes DeliveryNote[]
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  deliveryNoteServices DeliveryNoteService[]
+}
+
+model Aroma {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  stock       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  deliveryNoteAromas DeliveryNoteAroma[]
+}
+
+model DeliveryNote {
+  id            String   @id @default(uuid())
+  date          DateTime @default(now())
+  status        String
+  routeNumber   Int
+  ddNumber      Int
+  latitude      Float?
+  longitude     Float?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id])
+  commercialId  String
+  commercial    User     @relation("CommercialDeliveryNotes", fields: [commercialId], references: [id])
+  technicianId  String?
+  technician    User?    @relation("TechnicianDeliveryNotes", fields: [technicianId], references: [id])
+
+  services      DeliveryNoteService[]
+  aromas        DeliveryNoteAroma[]
+  statusHistory StatusHistory[]
+}
+
+model DeliveryNoteService {
+  id             String       @id @default(uuid())
+  quantity       Int
+  price          Float
+  discount       Float?
+  deliveryNoteId String
+  serviceId      String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  deliveryNote   DeliveryNote @relation(fields: [deliveryNoteId], references: [id])
+  service        Service      @relation(fields: [serviceId], references: [id])
+}
+
+model DeliveryNoteAroma {
+  id             String       @id @default(uuid())
+  quantity       Int
+  deliveryNoteId String
+  aromaId        String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  deliveryNote   DeliveryNote @relation(fields: [deliveryNoteId], references: [id])
+  aroma          Aroma        @relation(fields: [aromaId], references: [id])
+}
+
+model StatusHistory {
+  id             String       @id @default(uuid())
+  status         String
+  date           DateTime     @default(now())
+  latitude       Float?
+  longitude      Float?
+  deliveryNoteId String
+  userId         String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  deliveryNote   DeliveryNote @relation(fields: [deliveryNoteId], references: [id])
+}
